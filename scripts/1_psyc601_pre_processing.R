@@ -1,7 +1,5 @@
 #1. Setup
 
-#1. Setup
-
 # Sets pseudo random number generator seed to fixed value for reproducibility
 set.seed(1)
 
