@@ -5,40 +5,7 @@ set.seed(1)
 
 options(pkgType = "binary")
 
-# Check if package 'here' is installed; if not, install. 
-if (!require("here")) install.packages("here")
-
-# Load 'here' package
-library(here)
-
-# Check if renv file exists in project directory
-if (file.exists(here("renv.lock")))
-  
-{
-  
-  if (!require("renv")) {
-    
-    install.packages("renv")
-    renv::init(project = here())
-    here()
-  }
-  
-  else {
-    # If renv file exists, restore stored packages
-    renv::restore(project = here(),
-                  clean = TRUE,
-                  prompt = FALSE)
-    
-  }  
-  
-} else {
-  
-  # If renv file doesn't exist, check if pacman is not installed;
-  # if yes, install & load, if not, just load.
-  if (!require("pacman")) install.packages("pacman")
-  library(pacman)
-  
-}
+renv::restore()
 
 # Increase timeout for downloading packages in case of slow download speed
 options(timeout = 300)
@@ -47,7 +14,8 @@ options(timeout = 300)
 pacman::p_load(
   here,
   dplyr,
-  tidyr
+  tidyr,
+  psych
 )
 
 options(scipen = 999) # Remove scientific notations
@@ -58,8 +26,28 @@ data <- read.csv(here("data",
 
 #3. Exploration
 
+describe(data)
+
 #4. Duplicates
+
+data$unique <- duplicated(data) | duplicated(data, fromLast = TRUE)
+
+data <- tibble::rowid_to_column(data, "ID")
+
+data_duplicate <- data %>% 
+  filter(unique == TRUE) %>% 
+  arrange(mvn1)
+
+data_unique <- data %>%
+  select(-c(ID,
+            unique)) %>% 
+  distinct()
 
 #5. Assigning unique IDs
 
+data_unique <- data_unique %>% 
+  tibble::rowid_to_column("ID")
+
 #6. Final Sample Size = 2,589?
+
+# no, lost 10 duplicate cases, final N = 2,579
