@@ -17,7 +17,8 @@ pacman::p_load(
   dplyr,
   tidyr,
   psych,
-  MVN
+  MVN,
+  ggplot2
 )
 
 renv::snapshot()
@@ -38,19 +39,59 @@ data <- read.csv(here("data",
 data_mvn <- data %>%
   select(mvn1:mvn5)
 
-describe(data_mvn)
+describe(data_mvn,
+         type = 2)
 ```
+
+## Outliers
+
+### mvn1
+
+```{r mvn1 boxplot}
+boxplot_mvn1 <- data_mvn %>% 
+  select(mvn1) %>% 
+  ggplot(
+    aes(
+      y = mvn1
+    )
+  ) +
+  geom_boxplot(aes(y = mvn1),
+    outlier.colour = "red",
+  )
+
+boxplot_mvn1
+```
+
+```{r mvn1 IQR}
+mvn1_IQR <- IQR(data_mvn$mvn1)
+
+median_IQR <- function(x) {
+  data.frame(y = median(x), # Median
+             ymin = quantile(x)[2], # 1st quartile
+             ymax = quantile(x)[4])  # 3rd quartile
+}
+```
+
+
+
+## Correlations
+
+```{r corr panels}
+pairs.panels(data_mvn)
+```
+
+
 ## Univariate
 
 ```{r}
-mvn(data_mvn,
-    univariateTest = "SW")
 
-mvn(data_mvn,
+mvn <- mvn(data_mvn,
     univariateTest = "SW",
-    univariatePlot = "qqplot")
+    univariatePlot = "histogram")
 
 ```
+
+
 
 ## Multivariate
 
@@ -67,4 +108,12 @@ mvn(data_mvn,
 #4. Planning for Regression
 
 #5. Repeated-Measures ANOVA Screening
+
+#End
+
+```{r}
+citation("MVN")
+citation("psych")
+```
+
 
