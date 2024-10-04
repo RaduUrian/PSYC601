@@ -1,0 +1,70 @@
+# Setup
+
+```{r Setup}
+# Sets pseudo random number generator seed to fixed value for reproducibility
+set.seed(1)
+
+options(pkgType = "binary")
+
+renv::restore()
+
+# Increase timeout for downloading packages in case of slow download speed
+options(timeout = 300)
+
+# Load all required packages and update to ensure compatibility
+pacman::p_load(
+  here,
+  dplyr,
+  tidyr,
+  psych,
+  MVN
+)
+
+renv::snapshot()
+
+options(scipen = 999) # Remove scientific notations
+```
+
+```{r Import}
+
+data <- read.csv(here("data",
+              "screen2024_clean.csv"))
+
+```
+
+#1. Normality
+
+```{r Explore}
+data_mvn <- data %>%
+  select(mvn1:mvn5)
+
+describe(data_mvn)
+```
+## Univariate
+
+```{r}
+mvn(data_mvn,
+    univariateTest = "SW")
+
+mvn(data_mvn,
+    univariateTest = "SW",
+    univariatePlot = "qqplot")
+
+```
+
+## Multivariate
+
+```{r Mardia}
+
+```
+
+
+
+#2. Group Comparison Screening
+
+#3. Missing Data
+
+#4. Planning for Regression
+
+#5. Repeated-Measures ANOVA Screening
+

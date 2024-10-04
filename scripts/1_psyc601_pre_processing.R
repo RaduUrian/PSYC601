@@ -51,3 +51,6 @@ data_unique <- data_unique %>%
 #6. Final Sample Size = 2,589?
 
 # no, lost 10 duplicate cases, final N = 2,579
+
+write.csv(data_unique,
+          here("data", "screen2024_clean.csv"))
