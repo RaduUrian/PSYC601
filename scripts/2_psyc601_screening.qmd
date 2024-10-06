@@ -18,7 +18,8 @@ pacman::p_load(
   tidyr,
   psych,
   MVN,
-  ggplot2
+  ggplot2,
+  rstatix
 )
 
 renv::snapshot()
@@ -43,36 +44,356 @@ describe(data_mvn,
          type = 2)
 ```
 
-## Outliers
+## Univariate Outliers
 
 ### mvn1
 
+```{r}
+data_mvn1 <- data_mvn %>% 
+  select(mvn1)
+```
+
 ```{r mvn1 boxplot}
-boxplot_mvn1 <- data_mvn %>% 
-  select(mvn1) %>% 
+boxplot_mvn1 <- data_mvn1 %>% 
   ggplot(
     aes(
+      x = factor(0),
       y = mvn1
     )
   ) +
   geom_boxplot(aes(y = mvn1),
     outlier.colour = "red",
-  )
+  ) +
+  geom_jitter(alpha = 0.1) +
+  geom_violin(alpha = 0.6)
+
 
 boxplot_mvn1
 ```
 
 ```{r mvn1 IQR}
-mvn1_IQR <- IQR(data_mvn$mvn1)
+mvn1_IQR <- IQR(data_mvn1$mvn1)
 
 median_IQR <- function(x) {
   data.frame(y = median(x), # Median
              ymin = quantile(x)[2], # 1st quartile
              ymax = quantile(x)[4])  # 3rd quartile
 }
+
+mvn1_outliers <- data_mvn1 %>% 
+  identify_outliers()
+
+mvn1_outliers_stats <- mvn1_outliers %>% 
+  summarize(
+    Q1 = quantile(data_mvn1$mvn1, 0.25),
+    Q3 = quantile(data_mvn1$mvn1, 0.75),
+    IQR_1.5 = sum(is.outlier)/2579,
+    IQR_2.2 = sum(mvn1 > Q3+2.2*mvn1_IQR | mvn1 < Q3-2.2*mvn1_IQR)/2579,
+    IQR_3.0 = sum(is.extreme)/2579
+  )
+
+mvn1_outliers_stats
 ```
 
+```{r mvn1 z scores}
+mvn1_z <- as.data.frame(scale(data_mvn1))
 
+mvn1_z_outliers <- mvn1_z %>% 
+  mutate(
+    outlier = (mvn1 >= 3.29) | (mvn1 <= -3.29)
+  )
+
+mvn1_z_outliers_stats <- mvn1_z_outliers %>% 
+  summarise(
+    z_3.29 = sum(outlier)/n()
+  )
+
+mvn1_z_outliers_stats
+```
+
+### mvn2
+
+```{r}
+data_mvn2 <- data_mvn %>% 
+  select(mvn2)
+```
+
+```{r mvn2 boxplot}
+boxplot_mvn2 <- data_mvn2 %>% 
+  ggplot(
+    aes(
+      x = factor(0),
+      y = mvn2
+    )
+  ) +
+  geom_boxplot(aes(y = mvn2),
+    outlier.colour = "red"
+  ) +
+  geom_jitter(alpha = 0.1) +
+  geom_violin(alpha = 0.6)
+
+boxplot_mvn2
+```
+
+```{r mvn2 IQR}
+mvn2_IQR <- IQR(data_mvn2$mvn2)
+
+median_IQR <- function(x) {
+  data.frame(y = median(x), # Median
+             ymin = quantile(x)[2], # 1st quartile
+             ymax = quantile(x)[4])  # 3rd quartile
+}
+
+mvn2_outliers <- data_mvn2 %>% 
+  identify_outliers()
+
+mvn2_outliers_stats <- mvn2_outliers %>% 
+  summarize(
+    Q1 = quantile(data_mvn2$mvn2, 0.25),
+    Q3 = quantile(data_mvn2$mvn2, 0.75),
+    IQR_1.5 = sum(is.outlier)/2579,
+    IQR_2.2 = sum(mvn2 > Q3+2.2*mvn2_IQR | mvn2 < Q3-2.2*mvn2_IQR)/2579,
+    IQR_3.0 = sum(is.extreme)/2579
+  )
+
+mvn2_outliers_stats
+```
+
+```{r mvn2 z scores}
+mvn2_z <- as.data.frame(scale(data_mvn2))
+
+mvn2_z_outliers <- mvn2_z %>% 
+  mutate(
+    outlier = (mvn2 >= 3.29) | (mvn2 <= -3.29)
+  ) 
+
+mvn2_z_outliers_stats <- mvn2_z_outliers %>% 
+  summarise(
+    z_3.29 = sum(outlier)/n()
+  )
+
+mvn2_z_outliers_stats
+```
+
+### mvn3
+
+```{r}
+data_mvn3 <- data_mvn %>% 
+  select(mvn3)
+```
+
+```{r mvn3 boxplot}
+boxplot_mvn3 <- data_mvn3 %>% 
+  ggplot(
+    aes(
+      x = factor(0),
+      y = mvn3
+    )
+  ) +
+  geom_boxplot(aes(y = mvn3),
+    outlier.colour = "red"
+  ) +
+  geom_jitter(alpha = 0.1) +
+  geom_violin(alpha = 0.6)
+
+boxplot_mvn3
+```
+
+```{r mvn3 IQR}
+mvn3_IQR <- IQR(data_mvn3$mvn3)
+
+median_IQR <- function(x) {
+  data.frame(y = median(x), # Median
+             ymin = quantile(x)[2], # 1st quartile
+             ymax = quantile(x)[4])  # 3rd quartile
+}
+
+mvn3_outliers <- data_mvn3 %>% 
+  identify_outliers()
+
+mvn3_outliers_stats <- mvn3_outliers %>% 
+  summarize(
+    Q1 = quantile(data_mvn3$mvn3, 0.25),
+    Q3 = quantile(data_mvn3$mvn3, 0.75),
+    IQR_1.5 = sum(is.outlier)/2579,
+    IQR_2.2 = sum(mvn3 > Q3+2.2*mvn3_IQR | mvn3 < Q3-2.2*mvn3_IQR)/2579,
+    IQR_3.0 = sum(is.extreme)/2579
+  )
+
+mvn3_outliers_stats
+```
+
+```{r mvn3 z scores}
+mvn3_z <- as.data.frame(scale(data_mvn3))
+
+mvn3_z_outliers <- mvn3_z %>% 
+  mutate(
+    outlier = (mvn3 >= 3.29) | (mvn3 <= -3.29)
+  ) 
+
+mvn3_z_outliers_stats <- mvn3_z_outliers %>% 
+  summarise(
+    z_3.29 = sum(outlier)/n()
+  )
+
+mvn3_z_outliers_stats
+```
+
+### mvn4
+
+```{r}
+data_mvn4 <- data_mvn %>% 
+  select(mvn4)
+```
+
+```{r mvn4 boxplot}
+boxplot_mvn4 <- data_mvn4 %>% 
+  ggplot(
+    aes(
+      x = factor(0), 
+      y = mvn4
+    )
+  ) +
+  geom_boxplot(aes(y = mvn4),
+    outlier.colour = "red",
+    fill = "orange"
+  ) +
+  geom_violin(
+    alpha = 0.7
+  ) +
+  geom_jitter(
+    alpha = 0.1
+  )
+
+boxplot_mvn4
+```
+
+```{r mvn4 IQR}
+mvn4_IQR <- IQR(data_mvn4$mvn4)
+
+median_IQR <- function(x) {
+  data.frame(y = median(x), # Median
+             ymin = quantile(x)[2], # 1st quartile
+             ymax = quantile(x)[4])  # 3rd quartile
+}
+
+mvn4_outliers <- data_mvn4 %>% 
+  identify_outliers()
+
+mvn4_outliers_stats <- mvn4_outliers %>% 
+  summarize(
+    Q1 = quantile(data_mvn4$mvn4, 0.25),
+    Q3 = quantile(data_mvn4$mvn4, 0.75),
+    IQR_1.5 = sum(is.outlier)/2579,
+    IQR_2.2 = sum(mvn4 > Q3 + 2.2*mvn4_IQR | mvn4 < Q3 - 2.2*mvn4_IQR)/2579,
+    IQR_3.0 = sum(is.extreme)/2579
+  )
+
+mvn4_outliers_stats
+```
+
+```{r mvn4 z scores}
+mvn4_z <- as.data.frame(scale(data_mvn4))
+
+mvn4_z_outliers <- mvn4_z %>% 
+  mutate(
+    outlier = (mvn4 >= 3.29) | (mvn4 <= -3.29)
+  ) 
+
+mvn4_z_outliers_stats <- mvn4_z_outliers %>% 
+  summarise(
+    z_3.29 = sum(outlier)/n()
+  )
+
+mvn4_z_outliers_stats
+```
+
+### mvn5
+
+```{r}
+data_mvn5 <- data_mvn %>% 
+  select(mvn5)
+```
+
+```{r mvn5 boxplot}
+boxplot_mvn5 <- data_mvn5 %>% 
+  ggplot(
+    aes(
+      x = factor(0),
+      y = mvn5
+    )
+  ) +
+  geom_boxplot(aes(y = mvn5),
+    outlier.colour = "red",
+    fill = "orange"
+  ) +
+  geom_violin(
+    alpha = 0.7
+  ) +
+  geom_jitter(
+    alpha = 0.1
+  )
+
+boxplot_mvn5
+```
+
+```{r mvn5 IQR}
+mvn5_IQR <- IQR(data_mvn5$mvn5)
+
+median_IQR <- function(x) {
+  data.frame(y = median(x), # Median
+             ymin = quantile(x)[2], # 1st quartile
+             ymax = quantile(x)[4])  # 3rd quartile
+}
+
+mvn5_outliers <- data_mvn5 %>% 
+  identify_outliers()
+
+mvn5_outliers_stats <- mvn5_outliers %>% 
+  summarize(
+    Q1 = quantile(data_mvn5$mvn5, 0.25),
+    Q3 = quantile(data_mvn5$mvn5, 0.75),
+    IQR_1.5 = sum(is.outlier)/2579,
+    IQR_2.2 = sum(mvn5 > Q3+2.2*mvn5_IQR | mvn5 < Q3-2.2*mvn5_IQR)/2579,
+    IQR_3.0 = sum(is.extreme)/2579
+  )
+
+mvn5_outliers_stats
+```
+
+```{r mvn5 z scores}
+mvn5_z <- as.data.frame(scale(data_mvn5))
+
+mvn5_z_outliers <- mvn5_z %>% 
+  mutate(
+    outlier = (mvn5 >= 3.29) | (mvn5 <= -3.29)
+  ) 
+
+mvn5_z_outliers_stats <- mvn5_z_outliers %>% 
+  summarise(
+    z_3.29 = sum(outlier)/n()
+  )
+
+mvn5_z_outliers_stats
+```
+
+## Multivariate Outliers
+
+```{r}
+mvn_outliers <- mahalanobis_distance(data_mvn)
+ 
+outlier(x = data_mvn,
+        bad = 5)
+
+mvn_outliers_stats <- mvn_outliers %>% 
+  summarize(
+    outliers = sum(is.outlier)/n()
+  )
+
+mvn_outliers_stats
+
+
+```
 
 ## Correlations
 
@@ -80,8 +401,7 @@ median_IQR <- function(x) {
 pairs.panels(data_mvn)
 ```
 
-
-## Univariate
+## Univariate Normality Check
 
 ```{r}
 
@@ -91,14 +411,73 @@ mvn <- mvn(data_mvn,
 
 ```
 
-
-
-## Multivariate
+## Multivariate Normality Check
 
 ```{r Mardia}
+mvn(data_mvn,
+    mvnTest = "mardia",
+    multivariatePlot = "qq")
+```
+
+```{r SW}
+
+sw <- data_mvn %>% 
+rstatix::shapiro_test(
+  vars = c("mvn1",
+           "mvn2",
+           "mvn3",
+           "mvn4",
+           "mvn5")
+)
+
+sw
+```
+
+## Normality Transformations
+
+### mvn1
+
+```{r mvn1 square root transform}
+get_summary_stats(data_mvn1)
+
+
+
+data_mvn1_sqrt <- data_mvn1 %>% 
+  mutate(mvn1 = mvn1 - 12788) %>% 
+  sqrt()
+
+
+hist(data_mvn1_sqrt$mvn1)
+
+data_mvn1_sqrt_outliers <- identify_outliers(data_mvn1_sqrt)
+```
+
+```{r mvn1 natural log transform}
+
+data_mvn1_natlog <- data_mvn1 %>% 
+  mutate(mvn1 = mvn1 - 12788) %>% 
+  log()
+
+hist(data_mvn1_natlog$mvn1)
+
+data_mvn1_natlog_outliers <- identify_outliers(data_mvn1_natlog)
+
+rstatix::shapiro_test(data_mvn1_natlog,
+                      vars = c("mvn1"))
 
 ```
 
+## Outlier Removal
+
+### mvn1
+
+```{r}
+data_mvn1_no_outliers <- mvn1_outliers %>% 
+  filter(is.extreme == FALSE)
+
+rstatix::shapiro_test(data_mvn1_no_outliers,
+                      vars = c("mvn1"))
+```
 
 
 #2. Group Comparison Screening
