@@ -19,8 +19,14 @@ pacman::p_load(
   psych,
   MVN,
   ggplot2,
-  rstatix
+  rstatix,
+  remotes,
+  qqplotr,
+  car,
+  MASS
 )
+
+require(flexplot)
 
 renv::snapshot()
 
@@ -407,6 +413,10 @@ pairs.panels(data_mvn)
 
 mvn <- mvn(data_mvn,
     univariateTest = "SW",
+    univariatePlot = "qqplot")
+
+mvn <- mvn(data_mvn,
+    univariateTest = "SW",
     univariatePlot = "histogram")
 
 ```
@@ -438,18 +448,47 @@ sw
 ### mvn1
 
 ```{r mvn1 square root transform}
-get_summary_stats(data_mvn1)
-
-
+describe(data_mvn1,
+         type = 2)
 
 data_mvn1_sqrt <- data_mvn1 %>% 
   mutate(mvn1 = mvn1 - 12788) %>% 
   sqrt()
 
+describe(data_mvn1_sqrt,
+         type = 2)
 
-hist(data_mvn1_sqrt$mvn1)
+flexplot(data = data_mvn1_sqrt,
+         mvn1 ~ 1)
 
 data_mvn1_sqrt_outliers <- identify_outliers(data_mvn1_sqrt)
+
+data_mvn1_sqrt_no_outliers <- data_mvn1_sqrt %>% 
+  mutate(
+    is.extreme = if_else(
+      scale(mvn1) > 3.29 | scale(mvn1) < -3.29,
+      TRUE,
+      FALSE
+    )
+  ) %>% 
+  filter(is.extreme == FALSE)
+
+describe(data_mvn1_sqrt_no_outliers,
+         type = 2)
+
+flexplot(data = data_mvn1_sqrt_no_outliers,
+         mvn1 ~ 1)
+
+shapiro_test(data_mvn1_sqrt_no_outliers,
+             vars = c("mvn1"))
+
+qqPlot(data_mvn1_sqrt_no_outliers$mvn1)
+
+# (ranef_qqplot <- ggplot(data_mvn1_sqrt_no_outliers, aes(sample = mvn1)) +
+#   stat_qq_line() +
+#   stat_qq_band(bandType = "ts") +
+#   stat_qq_point()
+# )
 ```
 
 ```{r mvn1 natural log transform}
@@ -458,27 +497,191 @@ data_mvn1_natlog <- data_mvn1 %>%
   mutate(mvn1 = mvn1 - 12788) %>% 
   log()
 
-hist(data_mvn1_natlog$mvn1)
+data_mvn1_natlog
+
+describe(data_mvn1_natlog,
+         type = 2)
+
+flexplot(data = data_mvn1_natlog,
+         mvn1 ~ 1)
 
 data_mvn1_natlog_outliers <- identify_outliers(data_mvn1_natlog)
 
 rstatix::shapiro_test(data_mvn1_natlog,
                       vars = c("mvn1"))
 
-```
-
-## Outlier Removal
-
-### mvn1
-
-```{r}
-data_mvn1_no_outliers <- mvn1_outliers %>% 
+data_mvn1_natlog_no_outliers <- data_mvn1_natlog %>% 
+  mutate(
+    is.extreme = if_else(
+      scale(mvn1) > 3.29 | scale(mvn1) < -3.29,
+      TRUE,
+      FALSE
+    )
+  ) %>% 
   filter(is.extreme == FALSE)
 
-rstatix::shapiro_test(data_mvn1_no_outliers,
-                      vars = c("mvn1"))
+boxplot_mvn1 <- data_mvn1_natlog_no_outliers %>% 
+  ggplot(
+    aes(
+      x = factor(0),
+      y = mvn1
+    )
+  ) +
+  geom_boxplot(aes(y = mvn1),
+    outlier.colour = "red",
+  ) +
+  geom_jitter(alpha = 0.1) +
+  geom_violin(alpha = 0.6)
+
+boxplot_mvn1
+
+p <- data_mvn1_natlog_no_outliers %>% 
+ggplot(aes(x = mvn1)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "gray", color = "black") +
+  geom_density(color = "red", size = 1) +
+    stat_function(fun = dnorm, args = list(mean = mean(data_mvn1_natlog_no_outliers$mvn1),
+                                         sd = sd(data_mvn1_natlog_no_outliers$mvn1)),
+                aes(x = mvn1), color = "blue", size = 1, linetype = "dashed")
+
+p
+
+shapiro_test(data_mvn1_natlog_no_outliers,
+             vars = c("mvn1"))
+
+qqPlot(data_mvn1_natlog_no_outliers$mvn1)
+
+describe(data_mvn1_natlog_no_outliers,
+         type = 2)
+
 ```
 
+### mvn2
+
+```{r mvn2 natural log transform}
+
+data_mvn2_natlog <- data_mvn2 %>% 
+  mutate(mvn2 = mvn2 - 1299) %>% 
+  log()
+
+describe(data_mvn2_natlog,
+         type = 2)
+
+flexplot(data = data_mvn2_natlog,
+         mvn2 ~ 1)
+
+data_mvn2_natlog_outliers <- identify_outliers(data_mvn2_natlog)
+
+rstatix::shapiro_test(data_mvn2_natlog,
+                      vars = c("mvn2"))
+
+data_mvn2_natlog_no_outliers <- data_mvn2_natlog %>% 
+  mutate(
+    is.extreme = if_else(
+      scale(mvn2) > 3.29 | scale(mvn2) < -3.29,
+      TRUE,
+      FALSE
+    )
+  ) %>% 
+  filter(is.extreme == FALSE)
+
+p <- data_mvn2_natlog_no_outliers %>% 
+ggplot(aes(x = mvn2)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "gray", color = "black") +
+  geom_density(color = "red", size = 1) +
+    stat_function(fun = dnorm, args = list(mean = mean(data_mvn2_natlog_no_outliers$mvn2),
+                                         sd = sd(data_mvn2_natlog_no_outliers$mvn2)),
+                aes(x = mvn2), color = "blue", size = 1, linetype = "dashed")
+
+p
+
+shapiro_test(data_mvn2_natlog_no_outliers,
+             vars = c("mvn2"))
+
+qqPlot(data_mvn2_natlog_no_outliers$mvn2)
+
+describe(data_mvn2_natlog_no_outliers,
+         type = 2)
+
+```
+
+```{r exclude outliers first}
+
+data_mvn2_no_outliers <- data_mvn2_natlog %>% 
+  mutate(
+    is.extreme = if_else(
+      mvn2 > quantile(mvn2, 0.75)+(2.2*IQR(mvn2)) | mvn2 < quantile(mvn2, 0.25)-(2.2*IQR(mvn2)),
+      TRUE,
+      FALSE
+    )
+  ) %>% 
+  filter(is.extreme == FALSE)
+
+p <- data_mvn2_no_outliers %>% 
+ggplot(aes(x = mvn2)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "gray", color = "black") +
+  geom_density(color = "red", size = 1) +
+    stat_function(fun = dnorm, args = list(mean = mean(data_mvn2_no_outliers$mvn2),
+                                         sd = sd(data_mvn2_no_outliers$mvn2)),
+                aes(x = mvn2), color = "blue", size = 1, linetype = "dashed")
+
+p
+
+describe(data_mvn2_no_outliers,
+         type = 2)
+
+qqPlot(data_mvn2_no_outliers$mvn2)
+
+```
+
+```{r}
+
+```
+
+
+```{r}
+boxcox_result <- boxcox(data_mvn2$mvn2 ~ 1)
+
+lambda_optimal <- boxcox_result$x[which.max(boxcox_result$y)]
+
+data_mvn2_no_outliers_sqrt <- data_mvn2_no_outliers %>% 
+  mutate(mvn2 = mvn2 - 9.83784) %>% 
+  mutate(mvn2 = (mvn2^lambda_optimal - 1) / lambda_optimal)
+
+p <- data_mvn2_no_outliers_sqrt %>% 
+ggplot(aes(x = mvn2)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 30, fill = "gray", color = "black") +
+  geom_density(color = "red", size = 1) +
+    stat_function(fun = dnorm, args = list(mean = mean(data_mvn2_no_outliers_sqrt$mvn2),
+                                         sd = sd(data_mvn2_no_outliers_sqrt$mvn2)),
+                aes(x = mvn2), color = "blue", size = 1, linetype = "dashed")
+
+p
+
+describe(data_mvn2_no_outliers_sqrt,
+         type = 2)
+
+qqPlot(data_mvn2_no_outliers_sqrt$mvn2)
+```
+
+
+```{r mvn2 square root transform}
+
+data_mvn2_sqrt_no_outliers <- data_mvn2_no_outliers %>% 
+  select(mvn2) %>%
+  
+
+describe(data_mvn2_sqrt_no_outliers,
+         type = 2)
+
+flexplot(data = data_mvn2_sqrt_no_outliers,
+         mvn2 ~ 1)
+
+shapiro_test(data_mvn2_sqrt_no_outliers,
+             vars = c("mvn2"))
+
+qqPlot(data_mvn2_sqrt_no_outliers$mvn2)
+
+```
 
 #2. Group Comparison Screening
 
